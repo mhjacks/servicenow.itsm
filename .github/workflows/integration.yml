@@ -6,7 +6,7 @@ on: [workflow_call]  # allow this workflow to be called from other workflows
 jobs:
   integration_utah:
     uses: ./.github/workflows/integration_source.yml
-    secrets:
+    with:
       SN_HOST: ${{ secrets.SN_HOST_UTAH }}
       SN_USERNAME: ${{ secrets.SN_USERNAME_UTAH }}
       SN_PASSWORD: ${{ secrets.SN_PASSWORD_UTAH }}

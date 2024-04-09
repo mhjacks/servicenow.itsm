@@ -109,9 +109,9 @@ jobs:
 
       - name: Create integration_config.yml
         env:
-          SN_HOST: ${{ secrets.SN_HOST }}
-          SN_USERNAME: ${{ secrets.SN_USERNAME }}
-          SN_PASSWORD: ${{ secrets.SN_PASSWORD }}
+          SN_HOST: ${{ vars.SN_HOST }}
+          SN_USERNAME: ${{ vars.SN_USERNAME }}
+          SN_PASSWORD: ${{ vars.SN_PASSWORD }}
         run: |
           touch ${{ steps.identify.outputs.collection_path }}/tests/integration/integration_config.yml
           echo "sn_host: '${{ env.SN_HOST }}'" >> ${{ steps.identify.outputs.collection_path }}/tests/integration/integration_config.yml
