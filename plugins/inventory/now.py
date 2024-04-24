@@ -506,7 +506,7 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
             client_secret=get_secret_from_env(),
             refresh_token=os.getenv("SN_REFRESH_TOKEN"),
             grant_type=os.getenv("SN_GRANT_TYPE"),
-            timeout=os.getenv("SN_TIMEOUT"),
+            timeout=float(os.getenv("SN_TIMEOUT")),
         )
 
     def _get_instance(self):
