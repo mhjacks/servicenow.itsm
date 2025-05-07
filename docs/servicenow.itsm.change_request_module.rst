@@ -1,10 +1,9 @@
-
-.. Created with antsibull-docs 2.11.0
+.. Created with antsibull-docs 2.16.3
 
 servicenow.itsm.change_request module -- Manage ServiceNow change requests
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.6.0).
+This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.8.0).
 
 It is not included in ``ansible-core``.
 To check whether it is installed, run ``ansible-galaxy collection list``.
@@ -24,7 +23,7 @@ Synopsis
 --------
 
 - Create, delete or update a ServiceNow change request.
-- For more information, refer to the ServiceNow change management documentation at \ https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/change-management/concept/c_ITILChangeManagement.html\ .
+- For more information, refer to the ServiceNow change management documentation at \ `https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/change-management/concept/c\_ITILChangeManagement.html <https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/change-management/concept/c_ITILChangeManagement.html>`__.
 
 
 
@@ -739,7 +738,7 @@ Parameters
 See Also
 --------
 
-* \ `servicenow.itsm.change\_request\_info <change_request_info_module.rst>`__\ 
+* `servicenow.itsm.change\_request\_info <change_request_info_module.rst>`__
 
   List ServiceNow change requests.
 
@@ -748,7 +747,6 @@ Examples
 
 .. code-block:: yaml
 
-    
     - name: Create change request
       servicenow.itsm.change_request:
         instance:
@@ -809,7 +807,6 @@ Examples
 
 
 
-
 Authors
 ~~~~~~~
 
@@ -825,4 +822,3 @@ Collection links
 
 * `Issue Tracker <https://github.com/ansible-collections/servicenow.itsm/issues>`__
 * `Repository (Sources) <https://github.com/ansible-collections/servicenow.itsm>`__
-

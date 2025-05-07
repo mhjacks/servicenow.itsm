@@ -4,6 +4,65 @@ servicenow.itsm Release Notes
 
 .. contents:: Topics
 
+v2.8.0
+======
+
+Release Summary
+---------------
+
+Introduce feature to limit how many columns are retrieved by inventory queries, which can substantially improve inventory performance. Also includes changes to improve the integration test framework and enhance the release script.
+
+Minor Changes
+-------------
+
+- inventory - The inventory plugin now supports limiting the number of columns returned in the query. Users who wish to use this feature in conjunction with compose will need to add columns referenced by compose to the query additional_columns option. The default case preserves backwards compatibility by not limiting the columns returned. (https://github.com/ansible-collections/servicenow.itsm/pull/422)
+
+Bugfixes
+--------
+
+- tests - Fix problem and problem_task integration tests to be deterministic when being run in multithreaded environmnts (https://github.com/ansible-collections/servicenow.itsm/pull/421)
+
+v2.7.0
+======
+
+Release Summary
+---------------
+
+Add optional aggregation feature to inventory; add ServiceNow Xanadu to integration test matrix
+
+Minor Changes
+-------------
+
+- inventory - allow inventory to aggregate multiple hostvars for the same host. (https://github.com/ansible-collections/servicenow.itsm/pull/408)
+- tests - Add ServiceNow Xanadu release to test matrix
+
+v2.6.3
+======
+
+Release Summary
+---------------
+
+Fix docs issue with 2.6.2 release
+
+v2.6.2
+======
+
+Release Summary
+---------------
+
+Fix issue with service_catalog endpoint and remove SNOW Tokyo from test matrix
+
+Deprecated Features
+-------------------
+
+- tests - Drop sanity test override matrix, as the inherited job now has the correct excludes
+- tests - Drop testing of Tokyo, as it is no longer supported by ServiceNow
+
+Bugfixes
+--------
+
+- Correct submit_order endpoint for issue
+
 v2.6.1
 ======
 

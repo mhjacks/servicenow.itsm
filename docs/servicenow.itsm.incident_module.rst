@@ -1,10 +1,9 @@
-
-.. Created with antsibull-docs 2.11.0
+.. Created with antsibull-docs 2.16.3
 
 servicenow.itsm.incident module -- Manage ServiceNow incidents
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.6.0).
+This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.8.0).
 
 It is not included in ``ansible-core``.
 To check whether it is installed, run ``ansible-galaxy collection list``.
@@ -24,7 +23,7 @@ Synopsis
 --------
 
 - Create, delete or update a ServiceNow incident.
-- For more information, refer to the ServiceNow incident management documentation at \ https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/incident-management/concept/c_IncidentManagement.html\ .
+- For more information, refer to the ServiceNow incident management documentation at \ `https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/incident-management/concept/c\_IncidentManagement.html <https://docs.servicenow.com/bundle/tokyo-it-service-management/page/product/incident-management/concept/c_IncidentManagement.html>`__.
 
 
 
@@ -598,7 +597,6 @@ Examples
 
 .. code-block:: yaml
 
-    
     - name: Create incident
       servicenow.itsm.incident:
         instance:
@@ -655,7 +653,6 @@ Examples
 
 
 
-
 Authors
 ~~~~~~~
 
@@ -671,4 +668,3 @@ Collection links
 
 * `Issue Tracker <https://github.com/ansible-collections/servicenow.itsm/issues>`__
 * `Repository (Sources) <https://github.com/ansible-collections/servicenow.itsm>`__
-

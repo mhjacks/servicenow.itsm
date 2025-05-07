@@ -414,3 +414,59 @@ releases:
     - fix_documentation.yml
     - release_summary.yml
     release_date: '2024-05-29'
+  2.6.2:
+    changes:
+      bugfixes:
+      - Correct submit_order endpoint for issue
+      deprecated_features:
+      - tests - Drop sanity test override matrix, as the inherited job now has the
+        correct excludes
+      - tests - Drop testing of Tokyo, as it is no longer supported by ServiceNow
+      release_summary: Fix issue with service_catalog endpoint and remove SNOW Tokyo
+        from test matrix
+    fragments:
+    - fix_service_catalog_enndpoint.yml
+    - release_summary.yml
+    - remove_sanity_test_matrix.yml
+    - remove_tokyo.yml
+    release_date: '2024-08-29'
+  2.6.3:
+    changes:
+      release_summary: Fix docs issue with 2.6.2 release
+    fragments:
+    - release_summary.yml
+    release_date: '2024-08-29'
+  2.7.0:
+    changes:
+      minor_changes:
+      - inventory - allow inventory to aggregate multiple hostvars for the same host.
+        (https://github.com/ansible-collections/servicenow.itsm/pull/408)
+      - tests - Add ServiceNow Xanadu release to test matrix
+      release_summary: Add optional aggregation feature to inventory; add ServiceNow
+        Xanadu to integration test matrix
+    fragments:
+    - add_xanadu.yaml
+    - inventory_aggregation.yml
+    - release_summary.yml
+    release_date: '2024-10-03'
+  2.8.0:
+    changes:
+      bugfixes:
+      - tests - Fix problem and problem_task integration tests to be deterministic
+        when being run in multithreaded environmnts (https://github.com/ansible-collections/servicenow.itsm/pull/421)
+      minor_changes:
+      - inventory - The inventory plugin now supports limiting the number of columns
+        returned in the query. Users who wish to use this feature in conjunction with
+        compose will need to add columns referenced by compose to the query additional_columns
+        option. The default case preserves backwards compatibility by not limiting
+        the columns returned. (https://github.com/ansible-collections/servicenow.itsm/pull/422)
+      release_summary: Introduce feature to limit how many columns are retrieved by
+        inventory queries, which can substantially improve inventory performance.
+        Also includes changes to improve the integration test framework and enhance
+        the release script.
+    fragments:
+    - fix_integration_tests.yml
+    - query_limiting.yml
+    - release_summary.yml
+    - update_release_script.yml
+    release_date: '2025-02-20'

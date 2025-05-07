@@ -108,6 +108,23 @@ options:
     description: The ServiceNow table to use as the inventory source.
     type: str
     default: cmdb_ci_server
+  query_limit_columns:
+    description:
+      - Whether to explicitly limit the inventory to not include all columns from the listed I(table).
+        When this option is used, all I(colunns) listed will be included in the query, as well as any
+        columns listed in I(query_additional_columns).
+    type: boolean
+    default: false
+    version_added: 2.8.0
+  query_additional_columns:
+    description:
+      - List of I(table) columns to be queried in addition to columns listed in I(columns) which are
+        queried implicitly. The main purpose is to allow users that have large tables to limit the
+        size of the query and the resulting JSON parse in the client, which can take a long time.
+    type: list
+    elements: str
+    default: []
+    version_added: 2.8.0
   columns:
     description:
       - List of I(table) columns to be included as hostvars.
@@ -120,6 +137,12 @@ options:
     type: bool
     default: false
     version_added: 1.3.0
+  aggregation:
+    description:
+      - Enable multiple variable values aggregations.
+    type: bool
+    default: false
+    version_added: 2.7.0
   inventory_hostname_source:
     type: str
     description:
@@ -296,6 +319,128 @@ compose:
 # |  |  |--{name = OWA-SD-01}
 # |  |  |--{street = Via Nomentana 56, Rome}
 
+# Limit query to only return columns that we expressly include.
+# By default we retrieve all columns from a table, which can be
+# very ineffectient with tables with many rows and lots of columns.
+
+plugin: servicenow.itsm.now
+query_limit_columns: true
+query:
+  - os: = Linux Red Hat
+  - os: = AIX
+columns:
+  - name
+  - asset_tag
+  - manufacturer
+  - model_id
+
+# `ansible-inventory -i inventory.now.yaml --graph --vars` output:
+# @all:
+# |--@ungrouped:
+# |  |--Service-now Production Sacramento
+# |  |  |--{asset_tag = P1000173}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{name = Service-now Production Sacramento}
+# |  |--Service-now Production San Diego
+# |  |  |--{asset_tag = P1000114}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{name = Service-now Production San Diego}
+# |  |--DatabaseServer2
+# |  |  |--{asset_tag = P1000030}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge C6100 Rack Server}
+# |  |  |--{name = DatabaseServer2}
+# |  |--PS LinuxApp01
+# |  |  |--{asset_tag = P1000091}
+# |  |  |--{manufacturer = Iris}
+# |  |  |--{model_id = Iris 5875}
+# |  |  |--{name = PS LinuxApp01}
+# |  |--PS LinuxApp02
+# |  |  |--{asset_tag = P1000207}
+# |  |  |--{manufacturer = Iris}
+# |  |  |--{model_id = Iris 5875}
+# |  |  |--{name = PS LinuxApp02}
+# |  |--SAP AppSRV01
+# |  |  |--{asset_tag = P1000010}
+# |  |  |--{manufacturer = IBM}
+# |  |  |--{model_id = IBM Power 710 Express}
+# |  |  |--{name = SAP AppSRV01}
+# |  |--SAP AppSRV02
+# |  |  |--{asset_tag = P1000205}
+# |  |  |--{manufacturer = IBM}
+# |  |  |--{model_id = IBM Power 710 Express}
+# |  |  |--{name = SAP AppSRV02}
+# |  |--lnux100
+# |  |  |--{asset_tag = P1000165}
+# |  |  |--{manufacturer = Iris}
+# |  |  |--{model_id = Iris 5875}
+# |  |  |--{name = lnux100}
+# |  |--lnux101
+# |  |  |--{asset_tag = P1000054}
+# |  |  |--{manufacturer = Iris}
+# |  |  |--{model_id = Iris 5875}
+# |  |  |--{name = lnux101}
+# |  |--dbaix900nyc
+# |  |  |--{asset_tag = P1000055}
+# |  |  |--{manufacturer = IBM}
+# |  |  |--{model_id = IBM BladeCenter Blade HS22}
+# |  |  |--{name = dbaix900nyc}
+# |  |--dbaix901nyc
+# |  |  |--{asset_tag = P1000182}
+# |  |  |--{manufacturer = IBM}
+# |  |  |--{model_id = IBM BladeCenter Blade HS22}
+# |  |  |--{name = dbaix901nyc}
+# |  |--dbaix902nyc
+# |  |  |--{asset_tag = P1000070}
+# |  |  |--{manufacturer = IBM}
+# |  |  |--{model_id = IBM BladeCenter Blade HS22}
+# |  |  |--{name = dbaix902nyc}
+# |  |--ApplicationServerPeopleSoft
+# |  |  |--{asset_tag = P1000204}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{name = ApplicationServerPeopleSoft}
+# |  |--DatabaseServer1
+# |  |  |--{asset_tag = P1000199}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{name = DatabaseServer1}
+
+# Note that when limiting columns, any variables that are needed in compose, but
+# not included in columns, must be explicitly included using query_additional_columns:
+
+plugin: servicenow.itsm.now
+query_limit_columns: true
+
+query:
+  - os: = OS/400
+
+query_limit_columns: true
+
+columns:
+  - name
+  - asset_tag
+  - manufacturer
+  - model_id
+
+query_additional_columns:
+  - sys_class_name
+
+compose:
+  extended_class: sys_class_name ~ "/" ~ model_id
+
+# `ansible-inventory -i inventory.now.yaml --graph --vars` output:
+# @all:
+# |--@ungrouped:
+# |  |--AS400
+# |  |  |--{asset_tag = P1000034}
+# |  |  |--{extended_class = Server/Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{manufacturer = Dell Inc.}
+# |  |  |--{model_id = Dell Inc. PowerEdge M710HD Blade Server}
+# |  |  |--{name = AS400}
+
 # Use a javascript function defined in ServiceNow under "Script Includes",
 # which returns a list of the sys_ids that match a certain criteria
 # Example of script:
@@ -329,6 +474,7 @@ keyed_groups:
 
 
 import os
+import hashlib
 
 from ansible.errors import AnsibleParserError
 from ansible.inventory.group import to_safe_group_name as orig_safe
@@ -350,6 +496,76 @@ from ..module_utils.relations import (
     enhance_records_with_rel_groups,
 )
 from ..module_utils.table import TableClient
+
+
+class Aggregator:
+    def __init__(self, columns):
+        self.data = dict()
+        self.tmp = None
+
+    def add(self, host, key, value):
+        parent, child = self._split(key)
+        if not self.tmp:
+            self.tmp = dict()
+
+        if not child:
+            self.tmp[parent] = value
+        else:
+            tmp_parent_data = self.tmp.get(parent)
+            if not tmp_parent_data:
+                tmp_parent_data = dict()
+
+            parent_data = dict()
+            parent_data[child] = value
+            if isinstance(tmp_parent_data, str):
+                parent_data[parent] = tmp_parent_data
+            else:
+                for k, v in tmp_parent_data.items():
+                    parent_data[k] = v
+
+            self.tmp[parent] = parent_data
+
+    def commit(self, host):
+        if not self.tmp:
+            return
+        host_data = self.data.get(host, dict())
+        for k, v in self.tmp.items():
+            if k in host_data:
+                vv = host_data.get(k)
+                if isinstance(vv, list):
+                    if not self._is_exists(vv, v):
+                        vv.append(v)
+                continue
+            if isinstance(v, dict):
+                host_data[k] = [v]
+                continue
+            host_data[k] = v
+        self.tmp = None
+        self.data[host] = host_data
+
+    def aggregate(self, inventory):
+        for host, data in self.data.items():
+            for k, v in data.items():
+                inventory.set_variable(host, k, v)
+
+    def _split(self, column):
+        if "." not in column:
+            return column, ""
+        parts = column.split(".")
+        return parts[0], parts[1]
+
+    def _is_exists(self, items, item):
+        hash_v = self._hash_dict(item)
+        for i in items:
+            if self._hash_dict(i) == hash_v:
+                return True
+        return False
+
+    def _hash_dict(self, d):
+        h = hashlib.sha256()
+        d_sorted = str(dict(sorted(d.items())))
+        h.update(d_sorted.encode())
+        return h.hexdigest()
 
 
 def construct_sysparm_query(query, is_encoded_query):
@@ -445,6 +661,11 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
         for k in columns:
             self.inventory.set_variable(host, k.replace(".", "_"), record[k])
 
+    def set_host_vars_aggregated(self, host, record, columns, aggregator):
+        for k in columns:
+            aggregator.add(host, k, record[k])
+        aggregator.commit(host)
+
     def fill_constructed(
         self,
         records,
@@ -455,16 +676,26 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
         keyed_groups,
         strict,
         enhanced,
+        aggregation,
     ):
+        if aggregation:
+            aggregator = Aggregator(columns)
+
         for record in records:
             host = self.add_host(record, name_source)
             if host:
-                self.set_hostvars(host, record, columns)
+                if aggregation:
+                    self.set_host_vars_aggregated(host, record, columns, aggregator)
+                else:
+                    self.set_hostvars(host, record, columns)
+
                 self._set_composite_vars(compose, record, host, strict)
                 self._add_host_to_composed_groups(groups, record, host, strict)
                 self._add_host_to_keyed_groups(keyed_groups, record, host, strict)
                 if enhanced:
                     self.fill_enhanced_auto_groups(record, host)
+        if aggregation:
+            aggregator.aggregate(self.inventory)
 
     def fill_enhanced_auto_groups(self, record, host):
         for rel_group in record["relationship_groups"]:
@@ -569,6 +800,7 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
             raise AnsibleParserError(e)
 
         enhanced = self.get_option("enhanced")
+        aggregation = self.get_option("aggregation")
 
         sysparm_limit = self.get_option("sysparm_limit")
         if sysparm_limit:
@@ -579,6 +811,18 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
         table = self.get_option("table")
         name_source = self.get_option("inventory_hostname_source")
         columns = self.get_option("columns")
+        query_limit_columns = self.get_option("query_limit_columns")
+        query_additional_columns = self.get_option("query_additional_columns")
+
+        # Introduced for 2.8.0
+        # We only want to limit the table query when explicitly asked - existing documentation
+        # has examples that depend on this, and certainly deployed code does this and to do otherwise
+        # would break existing inventories. query_columns == None implies retrieving every column from
+        # the desired table, which can take a very long time to parse for large tables with many columns.
+        if query_limit_columns:
+            query_columns = list(set(query_additional_columns + columns))
+        else:
+            query_columns = None
 
         query = self.get_option("query")
         sysparm_query = self.get_option("sysparm_query")
@@ -605,6 +849,7 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
                 table_client,
                 table,
                 query or sysparm_query,
+                fields=query_columns,
                 is_encoded_query=bool(sysparm_query),
             )
 
@@ -647,4 +892,5 @@ class InventoryModule(BaseInventoryPlugin, ConstructableWithLookup, Cacheable):
             self.get_option("keyed_groups"),
             self.get_option("strict"),
             enhanced,
+            aggregation,
         )

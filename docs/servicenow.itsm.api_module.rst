@@ -1,10 +1,9 @@
-
-.. Created with antsibull-docs 2.11.0
+.. Created with antsibull-docs 2.16.3
 
 servicenow.itsm.api module -- Manage ServiceNow POST, PATCH and DELETE requests
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.6.0).
+This module is part of the `servicenow.itsm collection <https://galaxy.ansible.com/ui/repo/published/servicenow/itsm/>`_ (version 2.8.0).
 
 It is not included in ``ansible-core``.
 To check whether it is installed, run ``ansible-galaxy collection list``.
@@ -24,7 +23,7 @@ Synopsis
 --------
 
 - Create, delete or update a ServiceNow record from the given resource.
-- For more information, refer to the ServiceNow REST Table API documentation at \ https://docs.servicenow.com/bundle/tokyo-application-development/page/integrate/inbound-rest/concept/c_RESTAPI.html\ .
+- For more information, refer to the ServiceNow REST Table API documentation at \ `https://docs.servicenow.com/bundle/tokyo-application-development/page/integrate/inbound-rest/concept/c\_RESTAPI.html <https://docs.servicenow.com/bundle/tokyo-application-development/page/integrate/inbound-rest/concept/c_RESTAPI.html>`__.
 
 This module has a corresponding action plugin.
 
@@ -391,7 +390,7 @@ Parameters
 See Also
 --------
 
-* \ `servicenow.itsm.api\_info <api_info_module.rst>`__\ 
+* `servicenow.itsm.api\_info <api_info_module.rst>`__
 
   Manage ServiceNow GET requests.
 
@@ -400,7 +399,6 @@ Examples
 
 .. code-block:: yaml
 
-    
     - name: Create a record in table incident with specified short_description (which is read from data)
       servicenow.itsm.api:
         resource: incident
@@ -499,7 +497,6 @@ Examples
 
 
 
-
 Return Values
 -------------
 The following are the fields unique to this module:
@@ -548,4 +545,3 @@ Collection links
 
 * `Issue Tracker <https://github.com/ansible-collections/servicenow.itsm/issues>`__
 * `Repository (Sources) <https://github.com/ansible-collections/servicenow.itsm>`__
-
