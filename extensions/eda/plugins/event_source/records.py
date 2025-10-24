@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -223,6 +223,54 @@ class RecordsSource:
         self._poll_count = 0
         self._max_tracking_records = 1000  # Limit tracking records
 
+        # Timer-based processing settings (configurable parameters)
+        self._process_start_time = datetime.now(timezone.utc)
+        self._consideration_timer = self._process_start_time
+
+        # Parse timer update interval (default: 1 hour = 3600 seconds)
+        timer_interval_str = args.get("timer_update_interval", "1h")
+        self._timer_update_interval = self._parse_time_interval(timer_interval_str)
+
+        # Parse buffer time (default: 5 minutes)
+        buffer_time_str = args.get("timer_buffer_time", "5m")
+        self._timer_buffer_minutes = self._parse_time_interval(buffer_time_str) / 60
+
+        self._last_timer_update = self._process_start_time
+
+    def _parse_time_interval(self, time_str: str) -> int:
+        """
+        Parse time interval string and return seconds.
+        Supports formats like: '1h', '30m', '3600s', '2h30m'
+        """
+        import re
+
+        # Default to seconds if no unit specified
+        if time_str.isdigit():
+            return int(time_str)
+
+        # Parse time string with units
+        total_seconds = 0
+        pattern = r"(\d+)([hms])"
+        matches = re.findall(pattern, time_str.lower())
+
+        for value, unit in matches:
+            value = int(value)
+            if unit == "h":
+                total_seconds += value * 3600
+            elif unit == "m":
+                total_seconds += value * 60
+            elif unit == "s":
+                total_seconds += value
+
+        if total_seconds == 0:
+            # Fallback to default values if parsing fails
+            logger.warning(
+                "Could not parse time interval '%s', using default 1 hour", time_str
+            )
+            return 3600
+
+        return total_seconds
+
     # entrypoint for main logic
     async def start_polling(self):
         """
@@ -231,6 +279,17 @@ class RecordsSource:
         """
         remote_snow_timezone = self.lookup_snow_user_timezone()
         logger.info("Remote ServiceNow user's timezone is '%s'", remote_snow_timezone)
+        logger.info(
+            "Starting with consideration timer at %s (process started at %s)",
+            self._consideration_timer.isoformat(),
+            self._process_start_time.isoformat(),
+        )
+        logger.info(
+            "Timer settings: update interval=%ds (%.1fh), buffer=%d minutes",
+            self._timer_update_interval,
+            self._timer_update_interval / 3600,
+            int(self._timer_buffer_minutes),
+        )
 
         while True:
             logger.debug(
@@ -334,22 +393,30 @@ class RecordsSource:
     def should_record_be_sent_to_queue(self, record, reported_records_this_poll):
         """
         Determine if a record should be sent to the queue.
-        We ignore anything strictly older than our since timestamp, and we
+        We ignore anything strictly older than our consideration timer, and we
         ignore anything that has already been reported in the immediately previous cycle.
 
         If it is a new record, we need to remember it for the next cycle (so that we don't report it again),
         and add it to the queue for EDA.
         """
-        # Ignore anything strictly older than our since timestamp.
+        # Update consideration timer if needed
+        self._update_consideration_timer()
+
+        # Ignore anything strictly older than our consideration timer.
         record_update_timestamp = record["sys_updated_on"]
-        if (
-            get_tz_aware_datetime_from_string(record_update_timestamp)
-            < self.latest_sys_updated_on_floor
-        ):
-            logger.warning(
-                "Record update timestamp %s is somehow older than the latest sys_updated_on floor %s",
+        record_update_time = get_tz_aware_datetime_from_string(record_update_timestamp)
+
+        # Use the more recent of latest_sys_updated_on_floor or consideration_timer
+        effective_timestamp = max(
+            self.latest_sys_updated_on_floor or self._consideration_timer,
+            self._consideration_timer,
+        )
+
+        if record_update_time < effective_timestamp:
+            logger.debug(
+                "Record update timestamp %s is older than consideration timer %s, skipping",
                 record_update_timestamp,
-                self.latest_sys_updated_on_floor,
+                effective_timestamp.isoformat(),
             )
             return False
 
@@ -382,9 +449,54 @@ class RecordsSource:
 
         return True
 
+    def _update_consideration_timer(self):
+        """Update the consideration timer every hour with buffer time for slow processing"""
+        current_time = datetime.now(timezone.utc)
+        time_since_last_update = (
+            current_time - self._last_timer_update
+        ).total_seconds()
+
+        # Update timer if an hour has passed (with buffer for slow processing)
+        if time_since_last_update >= self._timer_update_interval:
+            # Add buffer time to account for slow processing
+            buffer_time = timedelta(minutes=self._timer_buffer_minutes)
+            self._consideration_timer = current_time - buffer_time
+            self._last_timer_update = current_time
+
+            logger.info(
+                "Updated consideration timer to %s (with %d minute buffer for slow processing)",
+                self._consideration_timer.isoformat(),
+                self._timer_buffer_minutes,
+            )
+
+    def get_consideration_timer_status(self):
+        """Get current consideration timer status for debugging"""
+        current_time = datetime.now(timezone.utc)
+        time_since_start = (current_time - self._process_start_time).total_seconds()
+        time_since_last_update = (
+            current_time - self._last_timer_update
+        ).total_seconds()
+
+        return {
+            "process_start_time": self._process_start_time.isoformat(),
+            "consideration_timer": self._consideration_timer.isoformat(),
+            "last_timer_update": self._last_timer_update.isoformat(),
+            "time_since_start_hours": time_since_start / 3600,
+            "time_since_last_update_minutes": time_since_last_update / 60,
+            "next_update_in_minutes": (
+                self._timer_update_interval - time_since_last_update
+            )
+            / 60,
+            "configured_update_interval_seconds": self._timer_update_interval,
+            "configured_buffer_minutes": int(self._timer_buffer_minutes),
+        }
+
     async def _cleanup_memory(self):
         """Cleanup memory and force garbage collection"""
         try:
+            # Update consideration timer if needed
+            self._update_consideration_timer()
+
             # Clear old tracking data if it gets too large
             if len(self.reported_records_last_poll) > self._max_tracking_records:
                 # Keep only recent records
